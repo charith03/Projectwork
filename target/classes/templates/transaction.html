@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #f2f2f2;
+            padding: 20px;
+            border: 1px solid lightgrey;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+        }
+
+        img {
+            max-width: 20%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="images/payment.jpg" alt="Transaction Successful">
+        <h2>Transaction Successful</h2>
+        <p>Thank you for your payment!</p>
+        <ul id="cart-items">
+            <!-- This is where you'll dynamically insert the cart items -->
+        </ul>
+        <button id="pay-button">Pay with Razorpay</button>
+    </div>
+
+    <script>
+        // Retrieve cart items from local storage
+        const cartItems = JSON.parse(localStorage.getItem('cartItems'));
+        const cartList = document.getElementById('cart-items');
+
+        // Display cart items and calculate total price
+        if (cartItems) {
+            let totalPrice = 0;
+
+            cartItems.forEach((item) => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - Quantity: ${item.quantity} - Price: $${item.price * item.quantity}`;
+                cartList.appendChild(li);
+
+                // Calculate the total price
+                totalPrice += item.price * item.quantity;
+            });
+
+            // Add a total price item
+            const totalItem = document.createElement('li');
+            totalItem.textContent = `Total: $${totalPrice}`;
+            cartList.appendChild(totalItem);
+        }
+    </script>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.getElementById('pay-button').addEventListener('click', function() {
+            // Fetch Razorpay order ID from your backend
+            fetch('your_server_endpoint_to_generate_order_id')
+                .then(response => response.json())
+                .then(data => {
+                    const options = {
+                        key: 'rzp_test_QDIdZKpbmhU7HV', // Replace with your actual Razorpay API key
+                        amount: data.amount, // Amount in paise (e.g., 1000 paise = ₹10)
+                        currency: data.currency, // Currency code (e.g., INR, USD)
+                        name: 'Your Company Name',
+                        description: 'Purchase description',
+                        order_id: data.order_id, // Order ID received from your server
+                        handler: function(response) {
+                            // Send payment details to your server for verification
+                            fetch('your_server_endpoint_to_verify_payment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(response)
+                            })
+                                .then(verificationResponse => verificationResponse.json())
+                                .then(result => {
+                                    if (result.status === 'success') {
+                                        alert('Payment successful. Payment ID: ' + response.razorpay_payment_id);
+                                    } else {
+                                        alert('Payment failed. Please try again.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error(error);
+                                });
+                        },
+                        prefill: {
+                            name: 'John Doe',
+                            email: 'john.doe@example.com',
+                            contact: '1234567890'
+                        },
+                        theme: {
+                            color: '#528FF0' // Customize the checkout form's theme color
+                        }
+                    };
+                    
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    </script>
+</body>
+</html>

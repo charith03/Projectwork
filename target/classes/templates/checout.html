@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .cart-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .cart {
+            border: 1px solid #333;
+            padding: 10px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #order-confirmation {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #333;
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="cart-container">
+        <h1>Checkout</h1>
+        <div class="cart">
+            <h2>Order Summary</h2>
+            <ul id="order-summary">
+                <!-- Ordered items will be displayed here -->
+            </ul>
+            <p>Total: <span id="order-total">Rs. 0</span></p>
+
+            <!-- Add an "Order Now" button to confirm the order -->
+            <button id="order-now-button">Order Now</button>
+
+            <!-- Display order confirmation message and estimated delivery time -->
+            <div id="order-confirmation">
+                <h2>Order Confirmed</h2>
+                <p>Total Amount: <span id="confirmed-total">Rs. 0</span></p>
+                <p>Estimated Delivery Time: 45 minutes</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Retrieve ordered items from local storage
+            const orderedItems = JSON.parse(localStorage.getItem('cart')) || [];
+
+            // Display ordered items and calculate the total on the checkout page
+            const orderSummary = document.getElementById('order-summary');
+            const orderTotal = document.getElementById('order-total');
+            let total = 0;
+
+            orderSummary.innerHTML = ''; // Clear the order summary
+
+            for (let i = 0; i < orderedItems.length; i++) {
+                const item = orderedItems[i];
+                const orderItem = document.createElement('li');
+                orderItem.className = 'order-item';
+                orderItem.innerHTML = `
+                    <span>${item.name}</span>
+                    <span>Rs. ${item.price} x ${item.quantity}</span>
+                `;
+                orderSummary.appendChild(orderItem);
+
+                total += parseFloat(item.price) * item.quantity;
+            }
+
+            orderTotal.textContent = `Rs. ${total}`;
+
+            // Event listener for the "Order Now" button
+            const orderNowButton = document.getElementById('order-now-button');
+            const orderConfirmation = document.getElementById('order-confirmation');
+            const confirmedTotal = document.getElementById('confirmed-total');
+
+            orderNowButton.addEventListener('click', () => {
+                orderConfirmation.style.display = 'block';
+                confirmedTotal.textContent = `Rs. ${total}`;
+            });
+        });
+    </script>
+</body>
+</html>
